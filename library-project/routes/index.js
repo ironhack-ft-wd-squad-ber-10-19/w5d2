@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Book = require("../models/Book");
+const Author = require("../models/Author");
 
 /* GET home page */
 
@@ -40,7 +41,9 @@ router.get("/books/add", (req, res) => {
 
 router.get("/books/:bookId", (req, res) => {
   Book.findById(req.params.bookId)
+    .populate("author") // "author" is the name of the property that needs to be populated (the one that has an ObjectId)
     .then(book => {
+      console.log(book);
       res.render("bookDetails", { book: book });
     })
     .catch(err => {

@@ -1,8 +1,13 @@
 {{#with book}}
 <h1>{{title}}</h1>
-<span>written by: {{author}}</span>
 <p>Summary: {{description}}</p>
 <p>Rating: {{rating}}</p>
+
+<h2>written by:</h2>
+<p>{{author.name}} {{author.lastName}}</p>
+<p>{{author.nationality}}</p>
+<img src="{{author.pictureUrl}}" height="200px">
+
 <a href="/books">More books</a>
 <a href="/books/edit/{{_id}}">Edit this book</a>
 {{/with}}
