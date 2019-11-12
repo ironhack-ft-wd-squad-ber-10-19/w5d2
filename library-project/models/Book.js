@@ -6,7 +6,10 @@ const bookSchema = new Schema({
   title: String,
   description: String,
   rating: Number,
-  author: String
+  author: {
+    type: Schema.Types.ObjectId,
+    ref: "Author"
+  }
 });
 
 const Book = mongoose.model("Book", bookSchema);
