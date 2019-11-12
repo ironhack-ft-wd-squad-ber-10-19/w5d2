@@ -7,6 +7,37 @@ router.get("/signup", (req, res) => {
   res.render("signup.hbs");
 });
 
+router.get("/login", (req, res) => {
+  res.render("login.hbs");
+});
+
+router.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  User.findOne({ username: username })
+    .then(found => {
+      if (!found) {
+        res.render("login.hbs", {
+          message: "Invalid credentials"
+        });
+        return;
+      }
+      bcrypt.compare(password, found.password).then(bool => {
+        if (bool === false) {
+          res.render("login.hbs", {
+            message: "Invalid credentials"
+          });
+          return;
+        }
+        // we want to log the user in
+        req.session.user = found;
+        res.redirect("/");
+      });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+});
+
 router.post("/signup", (req, res) => {
   // const username = req.body.username;
   // const password = req.body.password;
@@ -25,7 +56,6 @@ router.post("/signup", (req, res) => {
       res.render("signup.hbs", { message: "Username is already taken" });
       return;
     }
-    // create a hash of the password
     bcrypt
       .genSalt()
       .then(salt => {
@@ -38,8 +68,16 @@ router.post("/signup", (req, res) => {
       })
       .then(newUser => {
         console.log(newUser);
+        req.session.user = newUser;
         res.redirect("/");
       });
+  });
+});
+
+router.get("/logout", (req, res) => {
+  req.session.destroy(err => {
+    if (err) console.log(err);
+    else res.redirect("/");
   });
 });
 
