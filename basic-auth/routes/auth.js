@@ -11,7 +11,7 @@ router.get("/login", (req, res) => {
   res.render("login.hbs");
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", (req, res, next) => {
   const { username, password } = req.body;
   User.findOne({ username: username })
     .then(found => {
@@ -21,7 +21,7 @@ router.post("/login", (req, res) => {
         });
         return;
       }
-      bcrypt.compare(password, found.password).then(bool => {
+      return bcrypt.compare(password, found.password).then(bool => {
         if (bool === false) {
           res.render("login.hbs", {
             message: "Invalid credentials"
@@ -34,11 +34,11 @@ router.post("/login", (req, res) => {
       });
     })
     .catch(err => {
-      console.log(err);
+      next(err);
     });
 });
 
-router.post("/signup", (req, res) => {
+router.post("/signup", (req, res, next) => {
   // const username = req.body.username;
   // const password = req.body.password;
   const { username, password } = req.body;
@@ -51,32 +51,36 @@ router.post("/signup", (req, res) => {
     res.render("signup.hbs", { message: "Password is too short" });
     return;
   }
-  User.findOne({ username: username }).then(found => {
-    if (found) {
-      res.render("signup.hbs", { message: "Username is already taken" });
-      return;
-    }
-    bcrypt
-      .genSalt()
-      .then(salt => {
-        console.log("salt: ", salt);
-        return bcrypt.hash(password, salt);
-      })
-      .then(hash => {
-        console.log("hash: ", hash);
-        return User.create({ username: username, password: hash });
-      })
-      .then(newUser => {
-        console.log(newUser);
-        req.session.user = newUser;
-        res.redirect("/");
-      });
-  });
+  User.findOne({ username: [[]] })
+    .then(found => {
+      if (found) {
+        res.render("signup.hbs", { message: "Username is already taken" });
+        return;
+      }
+      return bcrypt
+        .genSalt()
+        .then(salt => {
+          console.log("salt: ", salt);
+          return bcrypt.hash(password, salt);
+        })
+        .then(hash => {
+          console.log("hash: ", hash);
+          return User.create({ username: username, password: hash });
+        })
+        .then(newUser => {
+          console.log(newUser);
+          req.session.user = newUser;
+          res.redirect("/");
+        });
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
-router.get("/logout", (req, res) => {
+router.get("/logout", (req, res, next) => {
   req.session.destroy(err => {
-    if (err) console.log(err);
+    if (err) next(err);
     else res.redirect("/");
   });
 });
