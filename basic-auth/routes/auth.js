@@ -51,7 +51,7 @@ router.post("/signup", (req, res, next) => {
     res.render("signup.hbs", { message: "Password is too short" });
     return;
   }
-  User.findOne({ username: [[]] })
+  User.findOne({ username: username })
     .then(found => {
       if (found) {
         res.render("signup.hbs", { message: "Username is already taken" });
